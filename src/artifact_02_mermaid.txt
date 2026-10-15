@@ -1,0 +1,30 @@
+flowchart TD
+    subgraph Creator ["Content Creator / DevRel"]
+        A1[Author Technical Content / Tutorial] --> A2[Compute Content Hash SHA-256]
+        A2 --> A3[Call: initialize_proposal via Web3 CLI]
+    end
+
+    subgraph Solana ["Solana Program (BreakBoost Core)"]
+        A3 --> B1[PDA Creation: Proposal & Escrow Vault]
+        B1 --> B2{Status: Pending Review}
+        B2 -->|Curator Multisig / Oracle Sign| B3[Call: review_proposal]
+        B3 --> B4{Status: Approved}
+        B4 -->|Creator Milestone Submission| B5[Call: submit_proof]
+        B5 --> B6{Proof Verified}
+        B6 -->|Milestone Finalized| B7[Call: release_stipend]
+        B7 --> B8[Transfer Vault Tokens to Creator ATA]
+    end
+
+    subgraph Relayer ["Off-Chain Automation Service"]
+        B8 -.->|WebSocket / Geyser Stream| C1[Enterprise Indexer & Event Listener]
+        C1 --> C2[Payload Deserialization & Deduplication Cache]
+        C2 --> C3{Event Type}
+        C3 -->|ProposalApproved| C4[Discord Webhook: Community Travel Alert]
+        C3 -->|StipendDisbursed| C5[Resend API: Travel Voucher & Ticket Confirmation]
+    end
+
+    subgraph Enterprise ["Enterprise Endpoints"]
+        C4 --> D1[Discord / Slack Announcements Channel]
+        C5 --> D2[Recipient Verified Email via Resend]
+        C5 --> D3[Breakpoint 2026 Ticketing & Logistics Ledger]
+    end

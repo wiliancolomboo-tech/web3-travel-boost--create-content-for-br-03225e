@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  breakboost-relayer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: breakboost-relayer
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
+      - PROGRAM_ID=BrkBt6WzB9gTq8X3gZg6jR1Z9qjXGzXGzXGzXGzXGzXX
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
+      - PORT=8080
+    ports:
+      - "8080:8080"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
