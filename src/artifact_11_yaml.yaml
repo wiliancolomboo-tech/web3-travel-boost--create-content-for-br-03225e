@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  breakpoint-boost-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: breakpoint_boost_agent
+    restart: always
+    environment:
+      - SOLANA_RPC_URL=${SOLANA_RPC_URL}
+      - PROGRAM_ID=${PROGRAM_ID}
+      - VERIFIER_KEYPAIR_PATH=/app/secrets/verifier-keypair.json
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+      - PORT=8080
+    volumes:
+      - ./secrets:/app/secrets:ro
+    ports:
+      - "8080:8080"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"

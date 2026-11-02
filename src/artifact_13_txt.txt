@@ -1,0 +1,7 @@
+How does TravelBoost work? ⚡
+
+1️⃣ Sponsors lock grant pools into Anchor PDA vaults
+2️⃣ Creators apply with cryptographic hashes of their content proposals
+3️⃣ Milestone 1 (50%): DevRel Oracle verifies technical guides ➡️ Flights booked!
+4️⃣ Milestone 2 (50%): On-site Breakpoint workshop verified ➡️ Hotel paid!
+5️⃣ Integrated directly with @Resend for instant email confirmations & Discord webhooks.

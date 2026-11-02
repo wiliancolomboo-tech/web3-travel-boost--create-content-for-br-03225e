@@ -1,0 +1,1 @@
+["submission", campaign_pubkey, creator_pubkey, submission_count_le_bytes]

@@ -1,0 +1,5 @@
+SOLANA_RPC_URL="https://api.devnet.solana.com"
+PROGRAM_ID="TrvLBoost2026Breakpoint11111111111111111111"
+RESEND_API_KEY="re_1234567890abcdef"
+DISCORD_WEBHOOK_URL="https://api.example.com/webhooks/alerts/placeholder"
+SENDER_EMAIL="grants@solanabreakpoint.org"

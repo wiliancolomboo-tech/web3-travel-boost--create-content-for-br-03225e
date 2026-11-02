@@ -1,0 +1,9 @@
+{
+  "status": "healthy",
+  "service": "breakboost-oracle-agent",
+  "breakpoint_campaign": 2026,
+  "cluster": "devnet",
+  "slot": 298410291,
+  "resend_connected": true,
+  "active_grantees_monitoring": 42
+}

@@ -1,0 +1,7 @@
+NODE_ENV=production
+PORT=8080
+SOLANA_RPC_URL=https://api.devnet.solana.com
+PROGRAM_ID=TrvL89QnN1gC7b32wR3kYxV7gPz9yX4vG4Q3vM5a9bp
+VERIFIER_KEYPAIR_JSON=[12,43,154,23,99,...]
+RESEND_API_KEY=re_123456789abcdef
+DISCORD_WEBHOOK_URL=https://api.example.com/webhooks/alerts/placeholder

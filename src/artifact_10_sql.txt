@@ -1,0 +1,4 @@
+CREATE TABLE notification_delivery (
+  event_key TEXT PRIMARY KEY,
+  delivered_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);

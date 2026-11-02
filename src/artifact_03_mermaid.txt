@@ -1,0 +1,24 @@
+sequenceDiagram
+    autonumber
+    actor Creator as Breakpoint Creator
+    participant App as BoostX Web / CLI Client
+    participant Solana as Solana Program (BoostX)
+    participant Worker as Off-Chain Auditor Engine
+    participant Slack as Enterprise Slack / Council
+    participant Resend as Resend Notification API
+
+    Creator->>App: Register for Breakpoint 2026 Boost (Milestones: Pre-event, Tech Deep Dive)
+    App->>Solana: init_applicant_record(deposit_bond, travel_grant_total)
+    Solana-->>App: Applicant PDA Created (Status: Approved)
+    
+    Creator->>App: Submit Content Proof (Breakpoint Keynote Technical Breakdown)
+    App->>Solana: submit_milestone_proof(milestone_idx, content_hash, metadata_uri)
+    Solana-->>Worker: Emit MilestoneProofSubmitted Event
+
+    Worker->>Slack: Send Interactive Approval Payload (Metrics, URL, Content Hash)
+    Slack->>Worker: Council Sign-off (Admin HMAC Signature)
+    Worker->>Solana: approve_and_disburse(applicant_pda, milestone_idx)
+    Solana->>Creator: Transfer Milestone USDC from Vault PDA
+    Solana-->>Worker: Emit MilestoneDisbursed Event
+    Worker->>Resend: Trigger Breakpoint Travel Grant Disbursed Email
+    Resend-->>Creator: Deliver Disbursement Receipt & Breakpoint 2026 Logistics Guide

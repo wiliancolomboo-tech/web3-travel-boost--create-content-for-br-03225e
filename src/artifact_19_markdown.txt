@@ -1,0 +1,20 @@
+1/3 🌍 Heading to Solana Breakpoint 2026? 
+
+Funding shouldn't be a barrier to high-signal builders. 
+
+Introducing TravelBoost: A production-ready on-chain milestone escrow protocol built on @Solana to fuel technical content creators attending #Breakpoint2026! 🚀⚡️
+
+2/3 🛠️ How it works:
+1️⃣ Sponsors & DAOs fund non-custodial PDA grant vaults
+2️⃣ Technical builders publish deep-dive guides, tooling & tutorials
+3️⃣ Verifiable Arweave hashes trigger instant milestone disbursements + automated @resend receipts & Discord telemetry
+
+No red tape. Sub-second Solana speed.
+
+3/3 🏆 Fully tested with @coral_xyz Anchor, 100% test coverage, and turnkey Docker deployment ready for Breakpoint 2026 community initiatives.
+
+Let's onboard the next generation of Solana core contributors! 
+
+Check the open-source repo & build with us: https://github.com/solana-developers/breakpoint-2026-travel-boost 
+
+#Solana #SolanaBreakpoint #Web3Dev

@@ -1,0 +1,17 @@
+import { describe, expect, it } from "vitest";
+import { proofHash } from "./hash.js";
+
+describe("proofHash", () => {
+  it("returns a deterministic 32-byte SHA-256 digest", () => {
+    const a = proofHash("booking-reference-123");
+    const b = proofHash("booking-reference-123");
+
+    expect(a).toEqual(b);
+    expect(a).toHaveLength(32);
+    expect(a.some((byte) => byte !== 0)).toBe(true);
+  });
+
+  it("changes when evidence changes", () => {
+    expect(proofHash("a")).not.toEqual(proofHash("b"));
+  });
+});

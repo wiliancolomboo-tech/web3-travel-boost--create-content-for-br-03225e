@@ -1,0 +1,18 @@
+🧵 1/3
+Attending @Solana Breakpoint shouldn't be limited by geography or travel budgets. 
+
+Introducing the Breakpoint Travel Boost Protocol: an on-chain, verifiable micro-grant allocation engine designed to fund top creators & engineers heading to Breakpoint 2026! 🚀⚡ #SolanaBreakpoint #Solana
+
+🧵 2/3
+How it works:
+1️⃣ Creators submit technical Breakpoint content + travel proof on-chain via @coral_xyz Anchor.
+2️⃣ Community & sponsors pool travel funds directly into secure Vault PDAs.
+3️⃣ Milestone approvals trigger programmatic releases + instant alerts via @resend & Webhooks.
+
+Transparent. Auditable. Fast.
+
+🧵 3/3
+Complete open-source codebase, automated event daemon, and Dockerized runbook ready for immediate deployment:
+🔗 https://github.com/solana-developers/breakpoint-travel-boost
+
+Let’s bring the world's best builders to Breakpoint 2026! 🌐 Built on @solana.

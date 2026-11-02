@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  breakpoint-boost-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: breakpoint_boost_agent
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - SOLANA_RPC_URL=https://api.devnet.solana.com
+      - PROGRAM_ID=BrkPnt2o26Boost11111111111111111111111111111
+      - REVIEWER_KEYPAIR_JSON=/run/secrets/reviewer_keypair.json
+      - RESEND_API_KEY=re_live_breakpoint2026_demo_key
+      - DISCORD_WEBHOOK_URL=https://api.example.com/webhooks/alerts/placeholder
+    secrets:
+      - reviewer_keypair.json
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+secrets:
+  reviewer_keypair.json:
+    file: ./secrets/reviewer_keypair.json

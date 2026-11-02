@@ -1,0 +1,13 @@
+GET /health
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "status": "healthy",
+  "programId": "TrvL6bSt2o26BreakpointGrants1111111111111111",
+  "syncedSlot": 298412940,
+  "vaultLiquiditySol": 142.50,
+  "pendingGrants": 4,
+  "processedGrants": 38,
+  "version": "1.0.0"
+}

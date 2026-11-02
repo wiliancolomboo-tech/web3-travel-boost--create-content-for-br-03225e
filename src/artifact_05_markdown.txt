@@ -1,0 +1,10 @@
+# Building the Next Millisecond SVM: Preparing for Breakpoint 2026
+*A Technical Playbook by the TravelBoost Developer Guild*
+
+## 1. Concurrency Bottlenecks & The Multi-Threaded SVM Revolution
+As Solana approaches Breakpoint 2026, Firedancer and multi-client SVM architectures require developers to rethink accounts locking. In this guide, we dive into:
+- Fine-grained account write locks: Structuring PDA hierarchies to prevent hot-account contention.
+- Zero-copy deserialization: Leveraging `AccountLoader` and `bytemuck` to bypass BPF stack depth constraints.
+- Ephemeral Rollup bridges: Offloading sub-second gaming state onto ephemeral SVM instances settled back to Solana L1.
+
+## 2. Practical Code Pattern: Zero-Contention State Sharding

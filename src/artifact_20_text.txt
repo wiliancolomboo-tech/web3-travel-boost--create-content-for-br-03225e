@@ -1,0 +1,10 @@
+GET /health
+Response:
+{
+  "status": "HEALTHY",
+  "uptime": 142857,
+  "last_synced_slot": 289410423,
+  "oracle_pubkey": "OracLeAuthority111111111111111111111111111",
+  "campaign_vault_usdc_balance": 47500.00,
+  "pending_evaluations": 0
+}

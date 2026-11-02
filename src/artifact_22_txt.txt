@@ -1,0 +1,2 @@
+### 6.4 Operational Runbook & Healthcheck Telemetry
+- **Liveness Endpoint:** The worker exposes an internal `/healthz` HTTP endpoint returning `200 OK` with:

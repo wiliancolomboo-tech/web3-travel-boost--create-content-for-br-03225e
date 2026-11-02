@@ -1,0 +1,6 @@
+How BP-Boost works under the hood on @solana:
+
+1️⃣ Non-custodial Anchor PDA vaults lock sponsor grants with zero counterparty risk
+2️⃣ Creators submit technical deep dives, benchmarks, or content proofs hashed via SHA-256
+3️⃣ Review committee multi-sig releases grants in <400ms
+4️⃣ Automated @resend integration sends flight vouchers & Breakpoint passes instantly!

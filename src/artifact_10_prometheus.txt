@@ -1,0 +1,7 @@
+# HELP travel_boost_submissions_total Total content submissions detected
+  # TYPE travel_boost_submissions_total counter
+  travel_boost_submissions_total 42
+
+  # HELP travel_boost_disbursed_sol_total Total SOL disbursed to contributors
+  # TYPE travel_boost_disbursed_sol_total counter
+  travel_boost_disbursed_sol_total 315.0

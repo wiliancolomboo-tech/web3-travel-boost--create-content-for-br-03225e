@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  travel-boost-daemon:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: solana-travel-boost-engine
+    restart: always
+    environment:
+      - SOLANA_RPC_URL=https://api.devnet.solana.com
+      - PROGRAM_ID=TBst202611111111111111111111111111111111111
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"

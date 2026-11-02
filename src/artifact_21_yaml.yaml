@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  breakpoint-boost-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: breakpoint_boost_agent
+    restart: always
+    environment:
+      - SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
+      - PROGRAM_ID=Boost11111111111111111111111111111111111111
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - SENDER_EMAIL=grants@breakpoint.solana.com
+      - CREATOR_NOTIFICATION_EMAIL=recipients@solana.com
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"

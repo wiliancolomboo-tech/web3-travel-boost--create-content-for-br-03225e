@@ -1,0 +1,24 @@
+.PHONY: all build test deploy-devnet clean docker-up docker-down
+
+all: build test
+
+build:
+	anchor build
+
+test:
+	anchor test
+
+deploy-devnet:
+	@echo "Deploying TravelBoost protocol to Solana Devnet..."
+	solana config set --url https://api.devnet.solana.com
+	anchor build
+	solana program deploy ./target/deploy/travel_boost.so --program-id TrvL9vj9wP6B8sF7X3mC5s8xW1V2E7nE8rQ9yU2m1pA
+
+clean:
+	rm -rf target dist node_modules
+
+docker-up:
+	docker compose up -d --build
+
+docker-down:
+	docker compose down

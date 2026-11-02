@@ -1,0 +1,3 @@
+### 6.4 Operational Runbook & Disaster Recovery
+1. **Oracle Key Rotation:** If the oracle private key is compromised, the sponsor invokes a campaign update transaction to reassign `oracle_pubkey` to a cold hardware key without moving campaign funds.
+2. **Post-Event Unclaimed Fund Recovery:** Once the deadline passes, run the emergency withdrawal CLI:

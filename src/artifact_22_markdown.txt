@@ -1,0 +1,21 @@
+🧵 1/3
+Thrilled to unveil Breakpoint Travel Boost for @Solana #Breakpoint2026! 🚀
+
+Traveling to Breakpoint shouldn't be limited by geography or corporate budgets. We've built an open-source, trust-minimized milestone funding protocol to get worldwide builders to Breakpoint 2026.
+
+Here is how it works 👇
+
+🧵 2/3
+🛠️ Tech Stack:
+• Anchor PDA-secured escrow pools locking USDC travel stipends
+• Cryptographic milestone attestations for technical content (guides, audits, public goods)
+• Instant notification pipeline via @resend & Discord
+• Fully interactive @Solana Actions (Blinks) for 1-click micro-sponsorships!
+
+🧵 3/3
+No bureaucracy. No multi-month wait times. Write killer Solana content, prove your impact, and get your flight funded directly on-chain.
+
+Check out the verified code & architecture repo:
+github.com/solana-developers/breakpoint-2026-travel-boost
+
+See you all at Breakpoint 2026! ☀️🏖️ #SolanaDevs @SolanaFndn

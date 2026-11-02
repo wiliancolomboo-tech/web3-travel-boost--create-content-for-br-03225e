@@ -1,0 +1,6 @@
+{
+  "ok": true,
+  "rpc": "https://api.devnet.solana.com",
+  "slot": 123456,
+  "program": "TBst111111111111111111111111111111111111111"
+}

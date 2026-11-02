@@ -1,0 +1,14 @@
++--------------------------------------------------------------------------------------------------+
+|                                    OPERATIONAL RUNBOOK                                           |
++----------------------+------------------------------------+--------------------------------------+
+| INCIDENT SCENARIO    | ROOT CAUSE                         | REMEDIATION STEP                     |
++----------------------+------------------------------------+--------------------------------------+
+| High RPC Rate Limits | WebSocket dropped / RPC 429 errors | Switch to premium private RPC pool   |
+|                      |                                    | (Triton / Helius) in .env            |
+| Oracle Key Drained   | Gas starvation on review txs       | Airdrop / transfer 1 SOL to          |
+|                      |                                    | Oracle pubkey; alert via PagerDuty   |
+| Resend API 401       | Invalid or expired mail token      | Rotate API Key in vault & trigger    |
+|                      |                                    | container rolling reload             |
+| Unclaimed Pool Funds | Post-Breakpoint surplus capital    | Call `withdraw_surplus` instruction  |
+|                      |                                    | after the 7-day grace lockup expires |
++----------------------+------------------------------------+--------------------------------------+

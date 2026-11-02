@@ -1,0 +1,6 @@
+SOLANA_RPC_HTTP=https://api.devnet.solana.com
+SOLANA_RPC_WS=wss://api.devnet.solana.com
+PROGRAM_ID=TB26vPrt5e14kEszw6y7Ksm1f1d1mZ8PqQ8N7e8tBst
+DISCORD_WEBHOOK_URL=https://api.example.com/webhooks/alerts/placeholder
+RESEND_API_KEY=re_1234567890abcdef
+TEST_NOTIFICATION_EMAIL=creator@domain.com

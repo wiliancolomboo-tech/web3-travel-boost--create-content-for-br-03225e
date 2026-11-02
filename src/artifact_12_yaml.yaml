@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  bp-boost-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bp_boost_worker
+    restart: always
+    environment:
+      - SOLANA_RPC_URL=https://api.devnet.solana.com
+      - PROGRAM_ID=BoostBP2026111111111111111111111111111111111
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
+      - OPERATIONS_ALERT_EMAIL=grants@solana.org
+    ports:
+      - "8080:8080"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"

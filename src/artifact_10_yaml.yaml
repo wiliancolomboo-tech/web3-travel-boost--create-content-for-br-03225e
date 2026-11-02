@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  breakpoint-oracle:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: breakpoint_boost_oracle
+    restart: unless-stopped
+    environment:
+      - SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
+      - PROGRAM_ID=BpBstJcZ1Ea823GfLhT6Nq4Zg1kC3v5H8w9s8v7n6m5L
+      - ORACLE_KEYPAIR_PATH=/secrets/oracle.json
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+    volumes:
+      - ./secrets/oracle.json:/secrets/oracle.json:ro
+    ports:
+      - "8080:8080"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"

@@ -1,0 +1,6 @@
+How BreakPass 2026 works:
+🛠️ Native @AnchorLang program with SHA-256 deliverable attestation
+🔐 Non-custodial PDA vault escrows guaranteeing solvency
+⚡ Event-driven webhook orchestration via Slack & @resend for sub-minute approval loops
+
+Zero paperwork. Pure cryptographic proof of work.

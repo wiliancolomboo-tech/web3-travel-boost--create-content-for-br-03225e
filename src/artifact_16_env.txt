@@ -1,0 +1,9 @@
+PORT=8080
+SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
+ORACLE_PRIVATE_KEY=<BASE64_ENCODED_ORACLE_KEYPAIR>
+PROGRAM_ID=TrvL6yN7K4z1d3E5F8pG9jK2m4Q6r8S1u3V5x7Y9z2A
+USDC_MINT=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+RESEND_API_KEY=re_enterprise_live_key
+SLACK_WEBHOOK_URL=https://api.example.com/webhooks/alerts/placeholder
+DISCORD_WEBHOOK_URL=https://api.example.com/webhooks/alerts/placeholder
+SENDER_EMAIL=travel-boost@solana.com

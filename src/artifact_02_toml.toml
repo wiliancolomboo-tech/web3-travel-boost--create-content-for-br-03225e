@@ -1,0 +1,19 @@
+[package]
+name = "travel_boost_breakpoint"
+version = "0.1.0"
+description = "Decentralized Content Attestation and Travel Grant Escrow for Solana Breakpoint 2026"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "travel_boost_breakpoint"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = { version = "0.30.1", features = ["init-if-needed"] }

@@ -1,0 +1,6 @@
+2/ BBP leverages Anchor PDA escrows & ed25519 oracle attestations on @solana:
+⚡️ Builders post deep-dives/tutorials
+⚡️ Off-chain oracles verify technical engagement & content hashes
+⚡️ Instant milestone streaming to wallets + @resend receipts & Discord telemetry
+
+No committees. Zero sybils. 100% on-chain transparency.

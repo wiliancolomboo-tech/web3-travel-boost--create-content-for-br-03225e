@@ -1,0 +1,6 @@
+travel_proof_submissions_total
+travel_proof_approvals_total
+travel_proof_rejections_total
+travel_proof_webhook_failures_total
+travel_proof_rpc_latency_ms
+travel_proof_pending_moderation_count

@@ -1,0 +1,9 @@
+{
+  "status": "healthy",
+  "service": "TravelBoost-Breakpoint2026-Daemon",
+  "cluster": "devnet",
+  "programId": "TBst2026Breakpoint1111111111111111111111111",
+  "oraclePubkey": "6uWn7XqL...9Mza",
+  "resendBridge": "connected",
+  "timestamp": "2026-04-10T12:00:00.000Z"
+}

@@ -1,0 +1,7 @@
+import { createHash } from "node:crypto";
+
+export function proofHash(privateEvidence: string): number[] {
+  return Array.from(
+    createHash("sha256").update(privateEvidence, "utf8").digest()
+  );
+}

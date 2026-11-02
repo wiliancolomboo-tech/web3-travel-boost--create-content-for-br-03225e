@@ -1,0 +1,29 @@
+FROM node:20-slim AS builder
+
+WORKDIR /usr/src/app
+RUN apt-get update && apt-get install -y openssl ca-certificates python3 make g++ && rm -rf /var/lib/apt/lists/*
+
+COPY package*.json ./
+RUN npm ci
+
+COPY tsconfig.json ./
+COPY client/ ./client/
+RUN npm run build
+
+FROM node:20-slim AS runner
+WORKDIR /usr/src/app
+
+ENV NODE_ENV=production
+RUN apt-get update && apt-get install -y openssl ca-certificates curl && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /usr/src/app/package*.json ./
+RUN npm ci --only=production
+
+COPY --from=builder /usr/src/app/dist ./dist
+
+# Healthcheck endpoint
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/healthz || exit 1
+
+EXPOSE 8080
+CMD ["node", "dist/client/daemon.js"]

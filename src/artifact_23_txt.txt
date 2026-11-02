@@ -1,0 +1,8 @@
+- **Key Rotation Protocol:** Oracle authority keys can be hot-rotated without redeploying contracts by calling `initialize_pool` update paths with the admin multisig.
+- **Incident Mitigation:** If an off-chain spam incident occurs, setting the minimum quality threshold dynamically filters out unverified payloads without locking unspent sponsor escrows.
+
+---
+
+# 7. Bonus Social Media Pitch (X / Twitter Thread)
+
+### Tweet 1: Hook & Announcement

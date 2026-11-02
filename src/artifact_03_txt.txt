@@ -1,0 +1,26 @@
+┌─────────────────────────────────────────────────────────┐
+   │               Solana Mainnet-Beta / Devnet               │
+   │  ┌───────────────────────────────────────────────────┐  │
+   │  │ Program ID: BpBst11111111111111111111111111111111111  │  │
+   │  │  - Campaign Account: [b"campaign", campaign_id]   │  │
+   │  │  - Submission Account: [b"submission", id, pubkey] │  │
+   │  │  - Vault Account: Token Account (USDC Escrow)     │  │
+   │  └───────────────────────────────────────────────────┘  │
+   └────────────────────────────┬────────────────────────────┘
+                                │ RPC WebSocket (LogsSubscribe)
+                                ▼
+   ┌─────────────────────────────────────────────────────────┐
+   │         Enterprise Automation Daemon (Node.js/TS)       │
+   │  ┌───────────────────────────────────────────────────┐  │
+   │  │ - Fastify Event Listener & Re-org Validator       │  │
+   │  │ - Static Code Analysis & LLM-Assisted Fact Checker│  │
+   │  │ - GitHub REST & GraphQL API Client                │  │
+   │  └──────────────────────┬─────────────┬──────────────┘  │
+   └─────────────────────────┼─────────────┼─────────────────┘
+                             │             │
+          JSON Webhook Payload│             │ HTTP REST / TLS
+                             ▼             ▼
+               ┌────────────────┐       ┌─────────────────┐
+               │  Slack/Discord │       │  Resend Service │
+               │ Foundation Ops │       │  Email Receipts │
+               └────────────────┘       └─────────────────┘

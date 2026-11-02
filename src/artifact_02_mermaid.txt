@@ -1,30 +1,29 @@
 flowchart TD
-    subgraph Creator ["Content Creator / DevRel"]
-        A1[Author Technical Content / Tutorial] --> A2[Compute Content Hash SHA-256]
-        A2 --> A3[Call: initialize_proposal via Web3 CLI]
+    subgraph OnChain["Solana On-Chain Program (Anchor / SVM)"]
+        SP[Sponsor / Foundation] -->|1. initialize_grant_pool| GP[GrantPool PDA Account]
+        GP -->|2. fund_escrow (USDC/SOL)| VAULT[Program Escrow Token Vault PDA]
+        CR[Creator / Developer] -->|3. submit_content_application| APP[GrantApplication PDA]
+        VER[Verifier / Admin Key] -->|4. approve_milestone_1 (Content Verified)| APP
+        APP -->|5. disburse_travel_boost (50% upfront)| VAULT
+        VAULT -->|Transfer Token| CR_ATA[Creator Token Account]
+        VER -->|6. verify_breakpoint_attendance (POAP/Ticket)| APP
+        APP -->|7. disburse_final_boost (50% balance)| VAULT
+        VAULT -->|Transfer Token| CR_ATA
     end
 
-    subgraph Solana ["Solana Program (BreakBoost Core)"]
-        A3 --> B1[PDA Creation: Proposal & Escrow Vault]
-        B1 --> B2{Status: Pending Review}
-        B2 -->|Curator Multisig / Oracle Sign| B3[Call: review_proposal]
-        B3 --> B4{Status: Approved}
-        B4 -->|Creator Milestone Submission| B5[Call: submit_proof]
-        B5 --> B6{Proof Verified}
-        B6 -->|Milestone Finalized| B7[Call: release_stipend]
-        B7 --> B8[Transfer Vault Tokens to Creator ATA]
+    subgraph OffChain["Enterprise Off-Chain Orchestrator & Verifier Daemon"]
+        CLI[BreakpointBoost CLI Agent] -->|Polls Application Status| RPC[Solana RPC Cluster]
+        RPC -->|Event Stream| CLI
+        CLI -->|Fetches Markdown/Repo| CONTENT[GitHub / Arweave / DevPost]
+        CLI -->|Validates Content Depth| AUDIT[Automated Technical Evaluation Engine]
+        CLI -->|Sends Approvals| VER
+        CLI -->|Dispatch Email Notification| RESEND[Resend Enterprise API]
+        CLI -->|Push Audit Logs| SLACK[Slack / Discord Webhooks]
     end
 
-    subgraph Relayer ["Off-Chain Automation Service"]
-        B8 -.->|WebSocket / Geyser Stream| C1[Enterprise Indexer & Event Listener]
-        C1 --> C2[Payload Deserialization & Deduplication Cache]
-        C2 --> C3{Event Type}
-        C3 -->|ProposalApproved| C4[Discord Webhook: Community Travel Alert]
-        C3 -->|StipendDisbursed| C5[Resend API: Travel Voucher & Ticket Confirmation]
-    end
-
-    subgraph Enterprise ["Enterprise Endpoints"]
-        C4 --> D1[Discord / Slack Announcements Channel]
-        C5 --> D2[Recipient Verified Email via Resend]
-        C5 --> D3[Breakpoint 2026 Ticketing & Logistics Ledger]
-    end
+    classDef anchor fill:#14F195,stroke:#000,stroke-width:2px,color:#000;
+    classDef offchain fill:#9945FF,stroke:#000,stroke-width:2px,color:#fff;
+    classDef ext fill:#181c24,stroke:#fff,stroke-width:1px,color:#fff;
+    class GP,VAULT,APP anchor;
+    class CLI,AUDIT offchain;
+    class RESEND,SLACK,CONTENT ext;

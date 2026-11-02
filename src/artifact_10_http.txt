@@ -1,0 +1,9 @@
+GET http://localhost:8080/health
+   Response: 200 OK
+   {
+     "status": "UP",
+     "network": "devnet",
+     "connected_program": "TrvL8oP26BreakpointContentEscrow1111111111",
+     "oracle_pubkey": "Revwr9QeD4e...",
+     "queue_latency_ms": 14
+   }

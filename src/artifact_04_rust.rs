@@ -1,279 +1,292 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 
-declare_id!("BrkBt6WzB9gTq8X3gZg6jR1Z9qjXGzXGzXGzXGzXGzXX");
+declare_id!("BrkP199999999999999999999999999999999999999");
 
-pub const MAX_TITLE_LEN: usize = 64;
-pub const MAX_URI_LEN: usize = 128;
-pub const MAX_MEMBERS: usize = 5;
+pub const DISBURSEMENT_STAGE_1_PERCENT: u64 = 50;
+pub const DISBURSEMENT_STAGE_2_PERCENT: u64 = 50;
+pub const MAX_URL_LEN: usize = 128;
+pub const MAX_NAME_LEN: usize = 48;
 
 #[program]
-pub mod breakboost {
+pub mod breakpoint_boost {
     use super::*;
 
-    /// Initializes a community travel campaign for Solana Breakpoint 2026.
-    pub fn initialize_campaign(
-        ctx: Context<InitializeCampaign>,
-        campaign_name: String,
-        total_budget: u64,
-        max_stipend_per_creator: u64,
+    pub fn initialize_pool(
+        ctx: Context<InitializePool>,
+        pool_name: String,
+        verifier: Pubkey,
+        total_stipend_per_grant: u64,
+        expiry_ts: i64,
     ) -> Result<()> {
-        require!(
-            campaign_name.len() <= MAX_TITLE_LEN,
-            BreakBoostError::StringTooLong
-        );
-        require!(total_budget > 0, BreakBoostError::InvalidAmount);
-        require!(
-            max_stipend_per_creator > 0 && max_stipend_per_creator <= total_budget,
-            BreakBoostError::InvalidStipendLimit
-        );
+        require!(pool_name.len() <= MAX_NAME_LEN, ErrorCode::StringTooLong);
+        require!(total_stipend_per_grant > 0, ErrorCode::InvalidAmount);
+        require!(expiry_ts > Clock::get()?.unix_timestamp, ErrorCode::InvalidExpiry);
 
-        let campaign = &mut ctx.accounts.campaign;
-        campaign.authority = ctx.accounts.authority.key();
-        campaign.funding_mint = ctx.accounts.funding_mint.key();
-        campaign.vault = ctx.accounts.vault.key();
-        campaign.total_budget = total_budget;
-        campaign.allocated_budget = 0;
-        campaign.disbursed_budget = 0;
-        campaign.max_stipend = max_stipend_per_creator;
-        campaign.proposal_count = 0;
-        campaign.bump = ctx.bumps.campaign;
-        campaign.vault_bump = ctx.bumps.vault;
+        let pool = &mut ctx.accounts.grant_pool;
+        pool.sponsor = ctx.accounts.sponsor.key();
+        pool.token_mint = ctx.accounts.token_mint.key();
+        pool.vault = ctx.accounts.vault.key();
+        pool.verifier = verifier;
+        pool.total_stipend_per_grant = total_stipend_per_grant;
+        pool.expiry_ts = expiry_ts;
+        pool.total_grants_funded = 0;
+        pool.active_grants_count = 0;
+        pool.bump = ctx.bumps.grant_pool;
+        pool.vault_bump = ctx.bumps.vault;
+        pool.name = pool_name;
 
-        emit!(CampaignInitializedEvent {
-            campaign: campaign.key(),
-            authority: campaign.authority,
-            total_budget,
-            max_stipend: max_stipend_per_creator,
-            timestamp: Clock::get()?.unix_timestamp,
+        emit!(PoolInitializedEvent {
+            pool: pool.key(),
+            sponsor: pool.sponsor,
+            total_stipend: total_stipend_per_grant,
         });
 
         Ok(())
     }
 
-    /// Deposits rewards into the Breakpoint Travel Vault.
-    pub fn fund_campaign(ctx: Context<FundCampaign>, amount: u64) -> Result<()> {
-        require!(amount > 0, BreakBoostError::InvalidAmount);
+    pub fn deposit_pool_funds(ctx: Context<DepositPoolFunds>, amount: u64) -> Result<()> {
+        require!(amount > 0, ErrorCode::InvalidAmount);
 
         let cpi_accounts = Transfer {
-            from: ctx.accounts.funder_token_account.to_account_info(),
+            from: ctx.accounts.sponsor_token_account.to_account_info(),
             to: ctx.accounts.vault.to_account_info(),
-            authority: ctx.accounts.funder.to_account_info(),
+            authority: ctx.accounts.sponsor.to_account_info(),
         };
         let cpi_ctx = CpiContext::new(ctx.accounts.token_program.to_account_info(), cpi_accounts);
         token::transfer(cpi_ctx, amount)?;
 
-        let campaign = &mut ctx.accounts.campaign;
-        campaign.total_budget = campaign
-            .total_budget
-            .checked_add(amount)
-            .ok_or(BreakBoostError::MathOverflow)?;
-
-        emit!(CampaignFundedEvent {
-            campaign: campaign.key(),
-            funder: ctx.accounts.funder.key(),
+        emit!(FundsDepositedEvent {
+            pool: ctx.accounts.grant_pool.key(),
             amount,
-            new_total: campaign.total_budget,
-            timestamp: Clock::get()?.unix_timestamp,
         });
 
         Ok(())
     }
 
-    /// Content creators apply for a Breakpoint 2026 Travel Boost stipend.
-    pub fn create_proposal(
-        ctx: Context<CreateProposal>,
-        title: String,
-        content_uri: String,
+    pub fn apply_for_grant(
+        ctx: Context<ApplyForGrant>,
+        content_track: u8,
+        content_proposal_uri: String,
         content_hash: [u8; 32],
-        requested_amount: u64,
     ) -> Result<()> {
-        require!(title.len() <= MAX_TITLE_LEN, BreakBoostError::StringTooLong);
-        require!(content_uri.len() <= MAX_URI_LEN, BreakBoostError::StringTooLong);
-        require!(requested_amount > 0, BreakBoostError::InvalidAmount);
+        require!(content_proposal_uri.len() <= MAX_URL_LEN, ErrorCode::StringTooLong);
+        let clock = Clock::get()?;
+        require!(clock.unix_timestamp < ctx.accounts.grant_pool.expiry_ts, ErrorCode::PoolExpired);
 
-        let campaign = &mut ctx.accounts.campaign;
-        require!(
-            requested_amount <= campaign.max_stipend,
-            BreakBoostError::ExceedsMaxStipend
-        );
+        let application = &mut ctx.accounts.grant_application;
+        application.applicant = ctx.accounts.applicant.key();
+        application.pool = ctx.accounts.grant_pool.key();
+        application.content_track = content_track;
+        application.content_proposal_uri = content_proposal_uri;
+        application.content_hash = content_hash;
+        application.status = GrantStatus::Submitted as u8;
+        application.milestone1_paid = false;
+        application.milestone2_paid = false;
+        application.submitted_at = clock.unix_timestamp;
+        application.bump = ctx.bumps.grant_application;
 
-        let available_budget = campaign
-            .total_budget
-            .checked_sub(campaign.allocated_budget)
-            .ok_or(BreakBoostError::InsufficientCampaignBudget)?;
-        require!(
-            requested_amount <= available_budget,
-            BreakBoostError::InsufficientCampaignBudget
-        );
+        let pool = &mut ctx.accounts.grant_pool;
+        pool.active_grants_count = pool.active_grants_count.checked_add(1).unwrap();
 
-        let proposal_index = campaign.proposal_count;
-        campaign.proposal_count = campaign
-            .proposal_count
-            .checked_add(1)
-            .ok_or(BreakBoostError::MathOverflow)?;
-
-        campaign.allocated_budget = campaign
-            .allocated_budget
-            .checked_add(requested_amount)
-            .ok_or(BreakBoostError::MathOverflow)?;
-
-        let proposal = &mut ctx.accounts.proposal;
-        proposal.campaign = campaign.key();
-        proposal.creator = ctx.accounts.creator.key();
-        proposal.proposal_index = proposal_index;
-        proposal.title = title;
-        proposal.content_uri = content_uri;
-        proposal.content_hash = content_hash;
-        proposal.requested_amount = requested_amount;
-        proposal.status = ProposalStatus::Pending;
-        proposal.created_at = Clock::get()?.unix_timestamp;
-        proposal.verified_at = 0;
-        proposal.bump = ctx.bumps.proposal;
-
-        emit!(ProposalCreatedEvent {
-            campaign: campaign.key(),
-            proposal: proposal.key(),
-            creator: proposal.creator,
-            requested_amount,
-            content_hash,
-            timestamp: proposal.created_at,
+        emit!(ApplicationSubmittedEvent {
+            pool: pool.key(),
+            applicant: application.applicant,
+            content_track,
         });
 
         Ok(())
     }
 
-    /// Campaign curators review and approve or reject travel boost proposals.
-    pub fn review_proposal(
-        ctx: Context<ReviewProposal>,
-        approve: bool,
+    pub fn approve_and_disburse_content(
+        ctx: Context<ApproveMilestoneContent>,
+        verified_hash: [u8; 32],
     ) -> Result<()> {
-        let proposal = &mut ctx.accounts.proposal;
-        let campaign = &mut ctx.accounts.campaign;
+        let application = &mut ctx.accounts.grant_application;
+        let pool = &ctx.accounts.grant_pool;
 
         require!(
-            proposal.status == ProposalStatus::Pending,
-            BreakBoostError::InvalidProposalStatus
-        );
-
-        if approve {
-            proposal.status = ProposalStatus::Approved;
-            emit!(ProposalReviewedEvent {
-                proposal: proposal.key(),
-                status: ProposalStatus::Approved,
-                reviewer: ctx.accounts.authority.key(),
-                timestamp: Clock::get()?.unix_timestamp,
-            });
-        } else {
-            proposal.status = ProposalStatus::Rejected;
-            // Deallocate the reserved budget back to the campaign
-            campaign.allocated_budget = campaign
-                .allocated_budget
-                .checked_sub(proposal.requested_amount)
-                .ok_or(BreakBoostError::MathOverflow)?;
-
-            emit!(ProposalReviewedEvent {
-                proposal: proposal.key(),
-                status: ProposalStatus::Rejected,
-                reviewer: ctx.accounts.authority.key(),
-                timestamp: Clock::get()?.unix_timestamp,
-            });
-        }
-
-        Ok(())
-    }
-
-    /// Verifies live content proof and releases travel stipend funds directly to creator.
-    pub fn verify_and_disburse_stipend(
-        ctx: Context<DisburseStipend>,
-        final_proof_hash: [u8; 32],
-    ) -> Result<()> {
-        let proposal = &mut ctx.accounts.proposal;
-        let campaign = &mut ctx.accounts.campaign;
-
-        require!(
-            proposal.status == ProposalStatus::Approved,
-            BreakBoostError::InvalidProposalStatus
+            application.status == (GrantStatus::Submitted as u8),
+            ErrorCode::InvalidStateTransition
         );
         require!(
-            final_proof_hash == proposal.content_hash,
-            BreakBoostError::ProofHashMismatch
+            application.content_hash == verified_hash,
+            ErrorCode::ContentHashMismatch
         );
 
-        let amount_to_pay = proposal.requested_amount;
+        let payout_amount = pool
+            .total_stipend_per_grant
+            .checked_mul(DISBURSEMENT_STAGE_1_PERCENT)
+            .unwrap()
+            .checked_div(100)
+            .unwrap();
 
-        // Transfer funds from PDA vault to creator token account
-        let campaign_key = campaign.key();
+        require!(
+            ctx.accounts.vault.amount >= payout_amount,
+            ErrorCode::InsufficientVaultBalance
+        );
+
+        let pool_key = pool.key();
         let seeds = &[
             b"vault".as_ref(),
-            campaign_key.as_ref(),
-            &[campaign.vault_bump],
+            pool_key.as_ref(),
+            &[pool.vault_bump],
         ];
-        let signer = &[&seeds[..]];
+        let signer_seeds = &[&seeds[..]];
 
         let cpi_accounts = Transfer {
             from: ctx.accounts.vault.to_account_info(),
-            to: ctx.accounts.creator_token_account.to_account_info(),
+            to: ctx.accounts.applicant_token_account.to_account_info(),
             authority: ctx.accounts.vault.to_account_info(),
         };
         let cpi_ctx = CpiContext::new_with_signer(
             ctx.accounts.token_program.to_account_info(),
             cpi_accounts,
-            signer,
+            signer_seeds,
         );
-        token::transfer(cpi_ctx, amount_to_pay)?;
+        token::transfer(cpi_ctx, payout_amount)?;
 
-        // Update states
-        campaign.disbursed_budget = campaign
-            .disbursed_budget
-            .checked_add(amount_to_pay)
-            .ok_or(BreakBoostError::MathOverflow)?;
+        application.milestone1_paid = true;
+        application.status = GrantStatus::ContentVerified as u8;
 
-        proposal.status = ProposalStatus::Disbursed;
-        proposal.verified_at = Clock::get()?.unix_timestamp;
+        emit!(MilestoneDisbursedEvent {
+            pool: pool.key(),
+            applicant: application.applicant,
+            stage: 1,
+            amount: payout_amount,
+        });
 
-        emit!(StipendDisbursedEvent {
-            campaign: campaign.key(),
-            proposal: proposal.key(),
-            creator: proposal.creator,
-            amount: amount_to_pay,
-            timestamp: proposal.verified_at,
+        Ok(())
+    }
+
+    pub fn verify_attendance_and_finalize(
+        ctx: Context<VerifyAttendanceAndFinalize>,
+        ticket_verification_sig: [u8; 64],
+    ) -> Result<()> {
+        let application = &mut ctx.accounts.grant_application;
+        let pool = &mut ctx.accounts.grant_pool;
+
+        require!(
+            application.status == (GrantStatus::ContentVerified as u8),
+            ErrorCode::InvalidStateTransition
+        );
+        require!(application.milestone1_paid, ErrorCode::Milestone1Unpaid);
+        require!(!application.milestone2_paid, ErrorCode::AlreadyClaimed);
+        require!(ticket_verification_sig != [0u8; 64], ErrorCode::InvalidTicketProof);
+
+        let payout_amount = pool
+            .total_stipend_per_grant
+            .checked_mul(DISBURSEMENT_STAGE_2_PERCENT)
+            .unwrap()
+            .checked_div(100)
+            .unwrap();
+
+        require!(
+            ctx.accounts.vault.amount >= payout_amount,
+            ErrorCode::InsufficientVaultBalance
+        );
+
+        let pool_key = pool.key();
+        let seeds = &[
+            b"vault".as_ref(),
+            pool_key.as_ref(),
+            &[pool.vault_bump],
+        ];
+        let signer_seeds = &[&seeds[..]];
+
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.vault.to_account_info(),
+            to: ctx.accounts.applicant_token_account.to_account_info(),
+            authority: ctx.accounts.vault.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            cpi_accounts,
+            signer_seeds,
+        );
+        token::transfer(cpi_ctx, payout_amount)?;
+
+        application.milestone2_paid = true;
+        application.status = GrantStatus::Completed as u8;
+        pool.total_grants_funded = pool.total_grants_funded.checked_add(1).unwrap();
+
+        emit!(MilestoneDisbursedEvent {
+            pool: pool.key(),
+            applicant: application.applicant,
+            stage: 2,
+            amount: payout_amount,
+        });
+
+        Ok(())
+    }
+
+    pub fn emergency_reclaim_funds(ctx: Context<EmergencyReclaim>) -> Result<()> {
+        let pool = &ctx.accounts.grant_pool;
+        let clock = Clock::get()?;
+        require!(clock.unix_timestamp > pool.expiry_ts, ErrorCode::PoolNotExpired);
+
+        let remaining_amount = ctx.accounts.vault.amount;
+        require!(remaining_amount > 0, ErrorCode::InsufficientVaultBalance);
+
+        let pool_key = pool.key();
+        let seeds = &[
+            b"vault".as_ref(),
+            pool_key.as_ref(),
+            &[pool.vault_bump],
+        ];
+        let signer_seeds = &[&seeds[..]];
+
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.vault.to_account_info(),
+            to: ctx.accounts.sponsor_token_account.to_account_info(),
+            authority: ctx.accounts.vault.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            cpi_accounts,
+            signer_seeds,
+        );
+        token::transfer(cpi_ctx, remaining_amount)?;
+
+        emit!(PoolReclaimedEvent {
+            pool: pool.key(),
+            reclaimed_amount: remaining_amount,
         });
 
         Ok(())
     }
 }
 
-// ==========================================
+// -----------------------------------------------------------------------------
 // ACCOUNT VALIDATION STRUCTS
-// ==========================================
+// -----------------------------------------------------------------------------
 
 #[derive(Accounts)]
-#[instruction(campaign_name: String)]
-pub struct InitializeCampaign<'info> {
+#[instruction(pool_name: String)]
+pub struct InitializePool<'info> {
+    #[account(mut)]
+    pub sponsor: Signer<'info>,
+
+    pub token_mint: Account<'info, Mint>,
+
     #[account(
         init,
-        payer = authority,
-        space = Campaign::LEN,
-        seeds = [b"campaign", authority.key().as_ref(), campaign_name.as_bytes()],
+        payer = sponsor,
+        space = 8 + GrantPool::LEN,
+        seeds = [b"grant_pool", sponsor.key().as_ref(), pool_name.as_bytes()],
         bump
     )]
-    pub campaign: Account<'info, Campaign>,
-
-    pub funding_mint: Account<'info, Mint>,
+    pub grant_pool: Account<'info, GrantPool>,
 
     #[account(
         init,
-        payer = authority,
-        seeds = [b"vault", campaign.key().as_ref()],
+        payer = sponsor,
+        seeds = [b"vault", grant_pool.key().as_ref()],
         bump,
-        token::mint = funding_mint,
-        token::authority = vault
+        token::mint = token_mint,
+        token::authority = vault,
     )]
     pub vault: Account<'info, TokenAccount>,
-
-    #[account(mut)]
-    pub authority: Signer<'info>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
@@ -281,223 +294,269 @@ pub struct InitializeCampaign<'info> {
 }
 
 #[derive(Accounts)]
-pub struct FundCampaign<'info> {
+pub struct DepositPoolFunds<'info> {
+    #[account(mut)]
+    pub sponsor: Signer<'info>,
+
     #[account(
         mut,
-        has_one = vault @ BreakBoostError::InvalidVaultAccount
+        has_one = sponsor @ ErrorCode::UnauthorizedSponsor,
+        has_one = vault @ ErrorCode::InvalidVaultAccount,
     )]
-    pub campaign: Account<'info, Campaign>,
+    pub grant_pool: Account<'info, GrantPool>,
+
+    #[account(
+        mut,
+        constraint = sponsor_token_account.mint == grant_pool.token_mint @ ErrorCode::MintMismatch,
+        constraint = sponsor_token_account.owner == sponsor.key() @ ErrorCode::UnauthorizedSponsor
+    )]
+    pub sponsor_token_account: Account<'info, TokenAccount>,
 
     #[account(mut)]
     pub vault: Account<'info, TokenAccount>,
 
-    #[account(
-        mut,
-        constraint = funder_token_account.mint == campaign.funding_mint @ BreakBoostError::InvalidMint
-    )]
-    pub funder_token_account: Account<'info, TokenAccount>,
-
-    pub funder: Signer<'info>,
     pub token_program: Program<'info, Token>,
 }
 
 #[derive(Accounts)]
-pub struct CreateProposal<'info> {
+pub struct ApplyForGrant<'info> {
     #[account(mut)]
-    pub campaign: Account<'info, Campaign>,
+    pub applicant: Signer<'info>,
+
+    #[account(mut)]
+    pub grant_pool: Account<'info, GrantPool>,
 
     #[account(
         init,
-        payer = creator,
-        space = Proposal::LEN,
-        seeds = [
-            b"proposal",
-            campaign.key().as_ref(),
-            &campaign.proposal_count.to_le_bytes()
-        ],
+        payer = applicant,
+        space = 8 + GrantApplication::LEN,
+        seeds = [b"application", grant_pool.key().as_ref(), applicant.key().as_ref()],
         bump
     )]
-    pub proposal: Account<'info, Proposal>,
+    pub grant_application: Account<'info, GrantApplication>,
 
-    #[account(mut)]
-    pub creator: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
-pub struct ReviewProposal<'info> {
+pub struct ApproveMilestoneContent<'info> {
     #[account(
         mut,
-        has_one = authority @ BreakBoostError::Unauthorized
+        constraint = verifier.key() == grant_pool.verifier @ ErrorCode::UnauthorizedVerifier
     )]
-    pub campaign: Account<'info, Campaign>,
+    pub verifier: Signer<'info>,
 
     #[account(
         mut,
-        has_one = campaign @ BreakBoostError::ProposalCampaignMismatch
+        has_one = vault @ ErrorCode::InvalidVaultAccount
     )]
-    pub proposal: Account<'info, Proposal>,
-
-    pub authority: Signer<'info>,
-}
-
-#[derive(Accounts)]
-pub struct DisburseStipend<'info> {
-    #[account(
-        mut,
-        has_one = authority @ BreakBoostError::Unauthorized,
-        has_one = vault @ BreakBoostError::InvalidVaultAccount
-    )]
-    pub campaign: Account<'info, Campaign>,
+    pub grant_pool: Account<'info, GrantPool>,
 
     #[account(
         mut,
-        has_one = campaign @ BreakBoostError::ProposalCampaignMismatch
+        seeds = [b"application", grant_pool.key().as_ref(), application.applicant.as_ref()],
+        bump = application.bump
     )]
-    pub proposal: Account<'info, Proposal>,
+    pub application: Account<'info, GrantApplication>,
 
     #[account(
         mut,
-        seeds = [b"vault", campaign.key().as_ref()],
-        bump = campaign.vault_bump
+        constraint = applicant_token_account.owner == application.applicant @ ErrorCode::InvalidApplicantRecipient,
+        constraint = applicant_token_account.mint == grant_pool.token_mint @ ErrorCode::MintMismatch
     )]
+    pub applicant_token_account: Account<'info, TokenAccount>,
+
+    #[account(mut)]
     pub vault: Account<'info, TokenAccount>,
 
-    #[account(
-        mut,
-        constraint = creator_token_account.owner == proposal.creator @ BreakBoostError::InvalidRecipientTokenAccount,
-        constraint = creator_token_account.mint == campaign.funding_mint @ BreakBoostError::InvalidMint
-    )]
-    pub creator_token_account: Account<'info, TokenAccount>,
-
-    pub authority: Signer<'info>,
     pub token_program: Program<'info, Token>,
 }
 
-// ==========================================
-// DATA STRUCTURES & ENUMS
-// ==========================================
+#[derive(Accounts)]
+pub struct VerifyAttendanceAndFinalize<'info> {
+    #[account(
+        mut,
+        constraint = verifier.key() == grant_pool.verifier @ ErrorCode::UnauthorizedVerifier
+    )]
+    pub verifier: Signer<'info>,
+
+    #[account(
+        mut,
+        has_one = vault @ ErrorCode::InvalidVaultAccount
+    )]
+    pub grant_pool: Account<'info, GrantPool>,
+
+    #[account(
+        mut,
+        seeds = [b"application", grant_pool.key().as_ref(), application.applicant.as_ref()],
+        bump = application.bump
+    )]
+    pub application: Account<'info, GrantApplication>,
+
+    #[account(
+        mut,
+        constraint = applicant_token_account.owner == application.applicant @ ErrorCode::InvalidApplicantRecipient,
+        constraint = applicant_token_account.mint == grant_pool.token_mint @ ErrorCode::MintMismatch
+    )]
+    pub applicant_token_account: Account<'info, TokenAccount>,
+
+    #[account(mut)]
+    pub vault: Account<'info, TokenAccount>,
+
+    pub token_program: Program<'info, Token>,
+}
+
+#[derive(Accounts)]
+pub struct EmergencyReclaim<'info> {
+    #[account(
+        mut,
+        constraint = sponsor.key() == grant_pool.sponsor @ ErrorCode::UnauthorizedSponsor
+    )]
+    pub sponsor: Signer<'info>,
+
+    #[account(
+        mut,
+        has_one = sponsor @ ErrorCode::UnauthorizedSponsor,
+        has_one = vault @ ErrorCode::InvalidVaultAccount
+    )]
+    pub grant_pool: Account<'info, GrantPool>,
+
+    #[account(
+        mut,
+        constraint = sponsor_token_account.owner == sponsor.key() @ ErrorCode::UnauthorizedSponsor,
+        constraint = sponsor_token_account.mint == grant_pool.token_mint @ ErrorCode::MintMismatch
+    )]
+    pub sponsor_token_account: Account<'info, TokenAccount>,
+
+    #[account(mut)]
+    pub vault: Account<'info, TokenAccount>,
+
+    pub token_program: Program<'info, Token>,
+}
+
+// -----------------------------------------------------------------------------
+// STATE DEFINITIONS
+// -----------------------------------------------------------------------------
+
+#[account]
+pub struct GrantPool {
+    pub sponsor: Pubkey,
+    pub token_mint: Pubkey,
+    pub vault: Pubkey,
+    pub verifier: Pubkey,
+    pub total_stipend_per_grant: u64,
+    pub expiry_ts: i64,
+    pub total_grants_funded: u32,
+    pub active_grants_count: u32,
+    pub bump: u8,
+    pub vault_bump: u8,
+    pub name: String,
+}
+
+impl GrantPool {
+    pub const LEN: usize = 32 + 32 + 32 + 32 + 8 + 8 + 4 + 4 + 1 + 1 + (4 + MAX_NAME_LEN);
+}
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq)]
-pub enum ProposalStatus {
-    Pending,
-    Approved,
-    Rejected,
-    Disbursed,
+pub enum GrantStatus {
+    Submitted = 0,
+    ContentVerified = 1,
+    Completed = 2,
+    Revoked = 3,
 }
 
 #[account]
-pub struct Campaign {
-    pub authority: Pubkey,         // 32
-    pub funding_mint: Pubkey,      // 32
-    pub vault: Pubkey,             // 32
-    pub total_budget: u64,         // 8
-    pub allocated_budget: u64,     // 8
-    pub disbursed_budget: u64,     // 8
-    pub max_stipend: u64,          // 8
-    pub proposal_count: u64,       // 8
-    pub bump: u8,                  // 1
-    pub vault_bump: u8,            // 1
-}
-
-impl Campaign {
-    pub const LEN: usize = 8 + 32 + 32 + 32 + 8 + 8 + 8 + 8 + 8 + 1 + 1 + 64; // with padding
-}
-
-#[account]
-pub struct Proposal {
-    pub campaign: Pubkey,          // 32
-    pub creator: Pubkey,           // 32
-    pub proposal_index: u64,       // 8
-    pub requested_amount: u64,     // 8
-    pub content_hash: [u8; 32],    // 32
-    pub status: ProposalStatus,    // 1 + 1
-    pub created_at: i64,           // 8
-    pub verified_at: i64,          // 8
-    pub title: String,             // 4 + 64
-    pub content_uri: String,       // 4 + 128
-    pub bump: u8,                  // 1
-}
-
-impl Proposal {
-    pub const LEN: usize = 8 + 32 + 32 + 8 + 8 + 32 + 2 + 8 + 8 + (4 + 64) + (4 + 128) + 1 + 32;
-}
-
-// ==========================================
-// EVENTS & ERRORS
-// ==========================================
-
-#[event]
-pub struct CampaignInitializedEvent {
-    pub campaign: Pubkey,
-    pub authority: Pubkey,
-    pub total_budget: u64,
-    pub max_stipend: u64,
-    pub timestamp: i64,
-}
-
-#[event]
-pub struct CampaignFundedEvent {
-    pub campaign: Pubkey,
-    pub funder: Pubkey,
-    pub amount: u64,
-    pub new_total: u64,
-    pub timestamp: i64,
-}
-
-#[event]
-pub struct ProposalCreatedEvent {
-    pub campaign: Pubkey,
-    pub proposal: Pubkey,
-    pub creator: Pubkey,
-    pub requested_amount: u64,
+pub struct GrantApplication {
+    pub applicant: Pubkey,
+    pub pool: Pubkey,
+    pub content_track: u8,
+    pub content_proposal_uri: String,
     pub content_hash: [u8; 32],
-    pub timestamp: i64,
+    pub status: u8,
+    pub milestone1_paid: bool,
+    pub milestone2_paid: bool,
+    pub submitted_at: i64,
+    pub bump: u8,
+}
+
+impl GrantApplication {
+    pub const LEN: usize = 32 + 32 + 1 + (4 + MAX_URL_LEN) + 32 + 1 + 1 + 1 + 8 + 1;
+}
+
+// -----------------------------------------------------------------------------
+// EVENTS
+// -----------------------------------------------------------------------------
+
+#[event]
+pub struct PoolInitializedEvent {
+    pub pool: Pubkey,
+    pub sponsor: Pubkey,
+    pub total_stipend: u64,
 }
 
 #[event]
-pub struct ProposalReviewedEvent {
-    pub proposal: Pubkey,
-    pub status: ProposalStatus,
-    pub reviewer: Pubkey,
-    pub timestamp: i64,
-}
-
-#[event]
-pub struct StipendDisbursedEvent {
-    pub campaign: Pubkey,
-    pub proposal: Pubkey,
-    pub creator: Pubkey,
+pub struct FundsDepositedEvent {
+    pub pool: Pubkey,
     pub amount: u64,
-    pub timestamp: i64,
 }
+
+#[event]
+pub struct ApplicationSubmittedEvent {
+    pub pool: Pubkey,
+    pub applicant: Pubkey,
+    pub content_track: u8,
+}
+
+#[event]
+pub struct MilestoneDisbursedEvent {
+    pub pool: Pubkey,
+    pub applicant: Pubkey,
+    pub stage: u8,
+    pub amount: u64,
+}
+
+#[event]
+pub struct PoolReclaimedEvent {
+    pub pool: Pubkey,
+    pub reclaimed_amount: u64,
+}
+
+// -----------------------------------------------------------------------------
+// ERROR CODES
+// -----------------------------------------------------------------------------
 
 #[error_code]
-pub enum BreakBoostError {
-    #[msg("String exceeds maximum allowable characters")]
+pub enum ErrorCode {
+    #[msg("String exceeds maximum allowable length")]
     StringTooLong,
-    #[msg("Amount must be greater than zero")]
+    #[msg("Specified numerical amount must be greater than zero")]
     InvalidAmount,
-    #[msg("Max stipend limit must be greater than 0 and less than total budget")]
-    InvalidStipendLimit,
-    #[msg("Requested stipend exceeds maximum allowance per creator")]
-    ExceedsMaxStipend,
-    #[msg("Insufficient campaign budget remaining for this proposal")]
-    InsufficientCampaignBudget,
-    #[msg("Proposal status is invalid for this operation")]
-    InvalidProposalStatus,
-    #[msg("Content SHA-256 proof does not match committed hash")]
-    ProofHashMismatch,
-    #[msg("Signer is not authorized to execute this action")]
-    Unauthorized,
-    #[msg("Associated mint does not match campaign currency")]
-    InvalidMint,
-    #[msg("Vault address does not match expected PDA")]
+    #[msg("Pool expiry timestamp must be set in the future")]
+    InvalidExpiry,
+    #[msg("Sponsor is not authorized for this action")]
+    UnauthorizedSponsor,
+    #[msg("Verifier is not authorized for milestone validation")]
+    UnauthorizedVerifier,
+    #[msg("Provided token vault does not match the registered pool account")]
     InvalidVaultAccount,
-    #[msg("Recipient token account does not match proposal author")]
-    InvalidRecipientTokenAccount,
-    #[msg("Proposal does not belong to specified campaign")]
-    ProposalCampaignMismatch,
-    #[msg("Arithmetic overflow detected")]
-    MathOverflow,
+    #[msg("Token account mint mismatch")]
+    MintMismatch,
+    #[msg("Grant pool has already reached its expiry timestamp")]
+    PoolExpired,
+    #[msg("Grant pool expiry timestamp has not been reached yet")]
+    PoolNotExpired,
+    #[msg("Application is not in a valid state for this milestone transition")]
+    InvalidStateTransition,
+    #[msg("Calculated SHA256 content hash does not match submission signature")]
+    ContentHashMismatch,
+    #[msg("Vault does not have sufficient balance to pay stipend")]
+    InsufficientVaultBalance,
+    #[msg("Recipient token account does not match applicant owner key")]
+    InvalidApplicantRecipient,
+    #[msg("Milestone 1 travel boost has not been disbursed")]
+    Milestone1Unpaid,
+    #[msg("Final milestone has already been claimed")]
+    AlreadyClaimed,
+    #[msg("Invalid Breakpoint 2026 ticket verification signature")]
+    InvalidTicketProof,
 }

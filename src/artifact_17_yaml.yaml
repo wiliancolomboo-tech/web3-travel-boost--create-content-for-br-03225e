@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  breakpoint-oracle-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: travelboost-oracle
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - SOLANA_RPC_URL=https://api.devnet.solana.com
+      - PROGRAM_ID=TB26BoostV111111111111111111111111111111111
+      - ORACLE_PRIVATE_KEY=[174,212,...] # Secret array
+      - RESEND_API_KEY=re_123456789abcdef
+      - DISCORD_WEBHOOK_URL=https://api.example.com/webhooks/alerts/placeholder
+      - PORT=8080
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

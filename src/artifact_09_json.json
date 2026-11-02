@@ -1,0 +1,9 @@
+// GET /health
+{
+  "status": "HEALTHY",
+  "programId": "BrkPnt2o26Boost11111111111111111111111111111",
+  "connectedRpc": "https://api.devnet.solana.com",
+  "slotHeight": 284912942,
+  "activePool": "Breakpoint-2026-Europe",
+  "uptimeSeconds": 86400
+}

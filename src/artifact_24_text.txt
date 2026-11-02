@@ -1,0 +1,7 @@
+Under the hood of TravelBoost:
+⚡️ Submissions sealed with on-chain SHA-256 content hashes
+⚡️ Multi-reviewer threshold attestation via SVM PDAs
+⚡️ Atomic instant disbursement of USDC travel stipends
+⚡️ Auto-relayed flight/event passes via @resend & Discord Webhooks
+
+Zero red tape. 100% on-chain auditability. 🛠️🦀

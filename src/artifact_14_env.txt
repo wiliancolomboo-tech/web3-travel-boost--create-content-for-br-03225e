@@ -1,0 +1,9 @@
+SOLANA_RPC_URL=https://api.devnet.solana.com
+WALLET_PATH=/run/secrets/operator-wallet.json
+PORT=8080
+
+RESEND_API_KEY=
+RESEND_FROM=travel-proof@your-domain.example
+NOTIFY_EMAIL=
+
+SLACK_WEBHOOK_URL=

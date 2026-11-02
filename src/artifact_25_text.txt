@@ -1,0 +1,6 @@
+Built for developers, powered by @solana speed (<400ms finality).
+
+Ready to secure your travel boost for Breakpoint 2026? Check out our open-source repo, spin up the turnkey Docker daemon, and submit your technical guides today:
+🔗 github.com/solana-travel-boost/core
+
+See you at Breakpoint 2026! 🚀🟣 #Solana #SolanaDevs

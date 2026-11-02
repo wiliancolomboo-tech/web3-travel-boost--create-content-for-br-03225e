@@ -1,0 +1,35 @@
+import "dotenv/config";
+import { Connection, Keypair, PublicKey } from "@solana/web3.js";
+import fs from "node:fs";
+import { proofHash } from "./hash.js";
+
+const rpc = process.env.SOLANA_RPC_URL ?? "https://api.devnet.solana.com";
+const connection = new Connection(rpc, "confirmed");
+
+function wallet(): Keypair {
+  const raw = JSON.parse(fs.readFileSync(process.env.WALLET_PATH!, "utf8"));
+  return Keypair.fromSecretKey(Uint8Array.from(raw));
+}
+
+async function hashCommand() {
+  const evidence = process.argv.slice(3).join(" ");
+  if (!evidence) throw new Error("Usage: npm run cli -- hash '<private evidence>'");
+  console.log(Buffer.from(proofHash(evidence)).toString("hex"));
+}
+
+async function balanceCommand() {
+  const kp = wallet();
+  const lamports = await connection.getBalance(kp.publicKey);
+  console.log(`${kp.publicKey.toBase58()}: ${lamports / 1e9} SOL`);
+}
+
+const command = process.argv[2];
+
+if (command === "hash") {
+  await hashCommand();
+} else if (command === "balance") {
+  await balanceCommand();
+} else {
+  console.error("Commands: hash, balance");
+  process.exit(1);
+}

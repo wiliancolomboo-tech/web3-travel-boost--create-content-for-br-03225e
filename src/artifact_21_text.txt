@@ -1,0 +1,12 @@
+GET /health
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "status": "HEALTHY",
+  "programId": "TrvL86Vq1hFkJyKq3B9Rk6P4sX2vP6Pq4z8F8V1J9oQ",
+  "currentSolanaSlot": 284109402,
+  "wsSubscriptionActive": true,
+  "queueLagMs": 12,
+  "uptimeSeconds": 140292
+}

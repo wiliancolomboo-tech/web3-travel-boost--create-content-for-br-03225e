@@ -1,0 +1,8 @@
+{
+  "status": "HEALTHY",
+  "network": "solana-devnet",
+  "programId": "TBst2026Breakpoint111111111111111111111111111",
+  "activeEscrows": 14,
+  "releasedStipendsTotalSol": 35.0,
+  "resendRelayStatus": "CONNECTED"
+}

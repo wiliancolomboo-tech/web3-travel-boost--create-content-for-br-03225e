@@ -1,152 +1,296 @@
-import { Connection, PublicKey, Keypair } from "@solana/web3.js";
-import { Program, AnchorProvider, Wallet, Idl, BorshCoder, EventParser } from "@coral-xyz/anchor";
-import { Resend } from "resend";
-import axios from "axios";
-import * as dotenv from "dotenv";
+import * as anchor from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
+import { TravelBoost } from "../target/types/travel_boost";
+import {
+  createMint,
+  createAccount,
+  mintTo,
+  getAccount,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
+import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
+import { expect } from "chai";
 
-dotenv.config();
+describe("TravelBoost Protocol: Breakpoint 2026 Test Suite", () => {
+  const provider = anchor.AnchorProvider.env();
+  anchor.setProvider(provider);
 
-// Configuration Interfaces
-interface Config {
-  solanaRpcUrl: string;
-  programId: string;
-  resendApiKey: string;
-  discordWebhookUrl: string;
-  adminKeypair: Keypair;
-}
+  const program = anchor.workspace.TravelBoost as Program<TravelBoost>;
 
-const PROGRAM_ID = new PublicKey(
-  process.env.PROGRAM_ID || "BrkBt6WzB9gTq8X3gZg6jR1Z9qjXGzXGzXGzXGzXGzXX"
-);
+  const authority = Keypair.generate();
+  const funder = Keypair.generate();
+  const creator = Keypair.generate();
+  const unapprovedCreator = Keypair.generate();
 
-export class BreakBoostOrchestrator {
-  private connection: Connection;
-  private resend: Resend;
-  private discordWebhook: string;
-  private programId: PublicKey;
+  let tokenMint: PublicKey;
+  let funderTokenAccount: PublicKey;
+  let creatorTokenAccount: PublicKey;
+  let authorityTokenAccount: PublicKey;
 
-  constructor(config: Config) {
-    this.connection = new Connection(config.solanaRpcUrl, {
-      commitment: "confirmed",
-      wsEndpoint: config.solanaRpcUrl.replace("https://", "wss://").replace("http://", "ws://"),
-    });
-    this.resend = new Resend(config.resendApiKey);
-    this.discordWebhook = config.discordWebhookUrl;
-    this.programId = new PublicKey(config.programId);
-  }
+  let campaignPda: PublicKey;
+  let vaultPda: PublicKey;
+  let applicationPda: PublicKey;
 
-  public async start(): Promise<void> {
-    console.log("========================================================");
-    console.log(" 🚀 BreakBoost 2026 Enterprise Relayer is Active");
-    console.log(` 🛰 Program ID: ${this.programId.toBase58()}`);
-    console.log("========================================================");
+  const campaignTitle = "Breakpoint 2026 Travel Boost";
+  const campaignDescription = "Developer & Creator content grants for Breakpoint Singapore/Global 2026.";
+  const tierAllowances = [
+    new anchor.BN(500_000_000),   // Tier 0: 500 USDC
+    new anchor.BN(1_200_000_000), // Tier 1: 1,200 USDC
+    new anchor.BN(2_500_000_000), // Tier 2: 2,500 USDC
+  ];
 
-    this.connection.onLogs(
-      this.programId,
-      async (logs, ctx) => {
-        if (logs.err) return;
-        try {
-          await this.processTransactionLogs(logs.signature, logs.logs);
-        } catch (err) {
-          console.error(`[Error] Failed processing signature ${logs.signature}:`, err);
-        }
-      },
-      "confirmed"
+  before(async () => {
+    // Airdrop SOL to test actors
+    for (const actor of [authority, funder, creator, unapprovedCreator]) {
+      const sig = await provider.connection.requestAirdrop(
+        actor.publicKey,
+        10 * anchor.web3.LAMPORTS_PER_SOL
+      );
+      await provider.connection.confirmTransaction(sig, "confirmed");
+    }
+
+    // Create mock USDC mint (6 decimals)
+    tokenMint = await createMint(
+      provider.connection,
+      funder,
+      funder.publicKey,
+      null,
+      6
     );
-  }
 
-  private async processTransactionLogs(signature: string, logs: string[]): Promise<void> {
-    for (const log of logs) {
-      if (log.includes("Program data:")) {
-        // Event data parsing simulation
-        if (log.includes("StipendDisbursedEvent") || logs.some(l => l.includes("verify_and_disburse_stipend"))) {
-          console.log(`[Event Detected] StipendDisbursed at tx: ${signature}`);
-          await this.notifyDisbursement(signature, "CreatorWalletPlaceholder", 1500000000); // 1,500 USDC
-          break;
-        } else if (log.includes("ProposalCreatedEvent") || logs.some(l => l.includes("create_proposal"))) {
-          console.log(`[Event Detected] ProposalCreated at tx: ${signature}`);
-          await this.notifyNewProposal(signature, "Solana Firedancer Deep Dive", "5x...creator");
-          break;
-        }
-      }
-    }
-  }
+    // Create user token accounts
+    funderTokenAccount = await createAccount(
+      provider.connection,
+      funder,
+      tokenMint,
+      funder.publicKey
+    );
 
-  public async notifyNewProposal(signature: string, title: string, creator: string): Promise<void> {
-    // 1. Post to Discord Review Channel
-    if (this.discordWebhook) {
-      await axios.post(this.discordWebhook, {
-        embeds: [
-          {
-            title: "🌟 New Breakpoint 2026 Travel Boost Proposal!",
-            color: 0x9945ff, // Solana Purple
-            fields: [
-              { name: "Content Title", value: title, inline: true },
-              { name: "Creator", value: `\`${creator}\``, inline: true },
-              { name: "Solana Explorer", value: `[View Transaction](https://explorer.solana.com/tx/${signature}?cluster=devnet)` },
-            ],
-            footer: { text: "BreakBoost 2026 Decentralized Curation" },
-            timestamp: new Date().toISOString(),
-          },
-        ],
-      });
-    }
-  }
+    creatorTokenAccount = await createAccount(
+      provider.connection,
+      creator,
+      tokenMint,
+      creator.publicKey
+    );
 
-  public async notifyDisbursement(
-    signature: string,
-    recipientAddress: string,
-    amountLamports: number
-  ): Promise<void> {
-    const formattedAmount = (amountLamports / 1_000_000).toLocaleString();
+    authorityTokenAccount = await createAccount(
+      provider.connection,
+      authority,
+      tokenMint,
+      authority.publicKey
+    );
 
-    // 1. Post to Discord General Announcement
-    if (this.discordWebhook) {
-      await axios.post(this.discordWebhook, {
-        content: `🎉 **Breakpoint 2026 Travel Boost Disbursed!** \nCreator \`${recipientAddress}\` just received **$${formattedAmount} USDC** to fund their flights & accommodation!\nTx: https://explorer.solana.com/tx/${signature}?cluster=devnet`,
-      });
-    }
+    // Mint 50,000 USDC into Funder account
+    await mintTo(
+      provider.connection,
+      funder,
+      tokenMint,
+      funderTokenAccount,
+      funder.publicKey,
+      50_000_000_000
+    );
 
-    // 2. Dispatch Enterprise Travel Voucher Email via Resend
-    const recipientEmail = process.env.DISBURSEMENT_NOTIFICATION_EMAIL || "builder@solana.org";
+    // Derive PDAs
+    [campaignPda] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("travel-campaign"),
+        authority.publicKey.toBuffer(),
+        Buffer.from(campaignTitle),
+      ],
+      program.programId
+    );
+
+    [vaultPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("campaign-vault"), campaignPda.toBuffer()],
+      program.programId
+    );
+
+    [applicationPda] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("creator-application"),
+        campaignPda.toBuffer(),
+        creator.publicKey.toBuffer(),
+      ],
+      program.programId
+    );
+  });
+
+  it("1. Successfully initializes Breakpoint 2026 Campaign with PDA Vault", async () => {
+    const deadline = new anchor.BN(Math.floor(Date.now() / 1000) + 86400 * 30);
+    const maxRecipients = 50;
+
+    await program.methods
+      .initializeCampaign(
+        campaignTitle,
+        campaignDescription,
+        deadline,
+        maxRecipients,
+        tierAllowances
+      )
+      .accounts({
+        campaign: campaignPda,
+        tokenMint: tokenMint,
+        vault: vaultPda,
+        authority: authority.publicKey,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      })
+      .signers([authority])
+      .rpc();
+
+    const campaign = await program.account.campaign.fetch(campaignPda);
+    expect(campaign.title).to.equal(campaignTitle);
+    expect(campaign.authority.toBase58()).to.equal(authority.publicKey.toBase58());
+    expect(campaign.currentRecipients).to.equal(0);
+    expect(campaign.maxRecipients).to.equal(50);
+  });
+
+  it("2. Escrows funds into campaign vault", async () => {
+    const depositAmount = new anchor.BN(25_000_000_000); // 25,000 USDC
+
+    await program.methods
+      .depositFunds(depositAmount)
+      .accounts({
+        campaign: campaignPda,
+        vault: vaultPda,
+        funderTokenAccount: funderTokenAccount,
+        funder: funder.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .signers([funder])
+      .rpc();
+
+    const vaultToken = await getAccount(provider.connection, vaultPda);
+    expect(Number(vaultToken.amount)).to.equal(25_000_000_000);
+
+    const campaign = await program.account.campaign.fetch(campaignPda);
+    expect(campaign.totalFundsEscrowed.toNumber()).to.equal(25_000_000_000);
+  });
+
+  it("3. Allows creator to register profile for Tier 2 (Global)", async () => {
+    await program.methods
+      .registerCreator("solana_architect", 2)
+      .accounts({
+        campaign: campaignPda,
+        application: applicationPda,
+        creator: creator.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([creator])
+      .rpc();
+
+    const app = await program.account.creatorApplication.fetch(applicationPda);
+    expect(app.handle).to.equal("solana_architect");
+    expect(app.requestedTier).to.equal(2);
+    expect(app.status).to.deep.equal({ submitted: {} });
+  });
+
+  it("4. Prevents registration with invalid tier index (> 2)", async () => {
+    const invalidAppPda = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("creator-application"),
+        campaignPda.toBuffer(),
+        unapprovedCreator.publicKey.toBuffer(),
+      ],
+      program.programId
+    )[0];
+
     try {
-      await this.resend.emails.send({
-        from: "BreakBoost 2026 <stipends@solana-breakpoint.com>",
-        to: [recipientEmail],
-        subject: "✈️ Your Solana Breakpoint 2026 Travel Stipend Has Been Disbursed!",
-        html: `
-          <div style="font-family: Arial, sans-serif; background-color: #0b0c10; color: #ffffff; padding: 24px; border-radius: 8px;">
-            <h1 style="color: #14f195;">Congratulations! Your Breakpoint Travel Boost is Approved.</h1>
-            <p>Your technical content contribution has been verified on-chain and your travel stipend is now in your wallet.</p>
-            <div style="background-color: #1f2833; padding: 16px; border-radius: 6px; margin: 16px 0;">
-              <p><strong>Amount:</strong> $${formattedAmount} USDC</p>
-              <p><strong>Recipient Account:</strong> ${recipientAddress}</p>
-              <p><strong>Transaction Signature:</strong> <a style="color: #14f195;" href="https://explorer.solana.com/tx/${signature}?cluster=devnet">${signature.slice(0, 16)}...</a></p>
-            </div>
-            <p>Please proceed with booking your flight and hotel for <strong>Solana Breakpoint 2026</strong>.</p>
-            <p style="font-size: 12px; color: #888;">Generated automatically by the BreakBoost 2026 Autonomous Verifier.</p>
-          </div>
-        `,
-      });
-      console.log(`[Resend] Disbursement voucher successfully sent to ${recipientEmail}`);
-    } catch (e) {
-      console.error("[Resend] Error delivering email dispatch:", e);
+      await program.methods
+        .registerCreator("hacker_tier", 99)
+        .accounts({
+          campaign: campaignPda,
+          application: invalidAppPda,
+          creator: unapprovedCreator.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([unapprovedCreator])
+        .rpc();
+      expect.fail("Should have thrown InvalidTier error");
+    } catch (err: any) {
+      expect(err.error.errorCode.code).to.equal("InvalidTier");
     }
-  }
-}
-
-// Execution Entrypoint
-if (require.main === module) {
-  const orchestrator = new BreakBoostOrchestrator({
-    solanaRpcUrl: process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com",
-    programId: PROGRAM_ID.toBase58(),
-    resendApiKey: process.env.RESEND_API_KEY || "re_test_dummy_key",
-    discordWebhookUrl: process.env.DISCORD_WEBHOOK_URL || "",
-    adminKeypair: Keypair.generate(),
   });
 
-  orchestrator.start().catch((err) => {
-    console.error("Fatal in Orchestrator:", err);
-    process.exit(1);
+  it("5. Submits technical content URI (Arweave/GitHub link)", async () => {
+    const contentUri = "https://arweave.net/tx_solana_breakpoint_2026_technical_deepdive";
+
+    await program.methods
+      .submitContent(contentUri)
+      .accounts({
+        campaign: campaignPda,
+        application: applicationPda,
+        creator: creator.publicKey,
+      })
+      .signers([creator])
+      .rpc();
+
+    const app = await program.account.creatorApplication.fetch(applicationPda);
+    expect(app.contentUri).to.equal(contentUri);
+    expect(app.status).to.deep.equal({ underReview: {} });
   });
-}
+
+  it("6. Evaluates & Approves grant via Committee Authority", async () => {
+    const qualityScore = 95;
+
+    await program.methods
+      .attestAndEvaluate(qualityScore, true, null)
+      .accounts({
+        campaign: campaignPda,
+        application: applicationPda,
+        vault: vaultPda,
+        authority: authority.publicKey,
+      })
+      .signers([authority])
+      .rpc();
+
+    const app = await program.account.creatorApplication.fetch(applicationPda);
+    expect(app.status).to.deep.equal({ approved: {} });
+    expect(app.approvedGrantAmount.toNumber()).to.equal(2_500_000_000); // 2,500 USDC
+  });
+
+  it("7. Creator claims travel stipend directly to token wallet", async () => {
+    const balanceBefore = await getAccount(provider.connection, creatorTokenAccount);
+
+    await program.methods
+      .claimTravelGrant()
+      .accounts({
+        campaign: campaignPda,
+        application: applicationPda,
+        vault: vaultPda,
+        creatorTokenAccount: creatorTokenAccount,
+        creator: creator.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .signers([creator])
+      .rpc();
+
+    const balanceAfter = await getAccount(provider.connection, creatorTokenAccount);
+    const delta = Number(balanceAfter.amount) - Number(balanceBefore.amount);
+    expect(delta).to.equal(2_500_000_000);
+
+    const app = await program.account.creatorApplication.fetch(applicationPda);
+    expect(app.status).to.deep.equal({ disbursed: {} });
+  });
+
+  it("8. Re-claiming disbursed grant is rejected by invariant check", async () => {
+    try {
+      await program.methods
+        .claimTravelGrant()
+        .accounts({
+          campaign: campaignPda,
+          application: applicationPda,
+          vault: vaultPda,
+          creatorTokenAccount: creatorTokenAccount,
+          creator: creator.publicKey,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        })
+        .signers([creator])
+        .rpc();
+      expect.fail("Should have prevented duplicate grant claim");
+    } catch (err: any) {
+      expect(err.error.errorCode.code).to.equal("InvalidState");
+    }
+  });
+});

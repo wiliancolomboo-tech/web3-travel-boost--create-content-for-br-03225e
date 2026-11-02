@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  travelboost-orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: travelboost-worker
+    restart: always
+    environment:
+      - PORT=8080
+      - SOLANA_RPC_URL=https://api.devnet.solana.com
+      - PROGRAM_ID=TRVLb26zW5W4D3vNKuRkJyN5qNzg9YxN3m1tXFpYBoS
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s

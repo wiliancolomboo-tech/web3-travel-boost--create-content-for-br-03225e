@@ -1,0 +1,7 @@
+Backed by enterprise notification webhooks (@resend + Discord) and automated Prometheus telemetry.
+
+Code is 100% open-source, fully tested, and ready for Breakpoint 2026.
+
+Check out our full protocol architecture & GitHub repo here: https://github.com/solana-breakpoint/travel-boost-2026
+
+See you all in 2026! 🚀☀️ #Solana #Breakpoint2026 #SolanaDevs

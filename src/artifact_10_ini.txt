@@ -1,0 +1,7 @@
+SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
+PROGRAM_ID=TrvL8jY8vXN6k9T4Xy5M2z7H4mB3p1Q9V6a8K2w4R5u
+ADMIN_KEYPAIR_PATH=/etc/secrets/authority-keypair.json
+RESEND_API_KEY=re_live_enterprisegranttoken99824
+DISCORD_WEBHOOK_URL=https://api.example.com/webhooks/alerts/placeholder
+SLACK_WEBHOOK_URL=https://api.example.com/webhooks/alerts/placeholder
+PORT=8080

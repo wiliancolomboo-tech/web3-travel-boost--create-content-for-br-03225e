@@ -1,0 +1,11 @@
+# Solana Network Configuration
+SOLANA_RPC_URL=https://api.devnet.solana.com
+AUTHORITY_PRIVATE_KEY=your_base58_encoded_secret_key_here
+PROGRAM_ID=WPT26b8gP8RkMUp5UuR7B3xJg7y3Y3X1eB2mS9uL123
+CAMPAIGN_ID=breakpoint2026
+TOKEN_MINT=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+
+# External Enterprise Webhooks
+DISCORD_WEBHOOK_URL=https://api.example.com/webhooks/alerts/placeholder
+RESEND_API_KEY=re_your_enterprise_api_key_here
+RESEND_FROM_EMAIL=grants@solanabreakpoint.com

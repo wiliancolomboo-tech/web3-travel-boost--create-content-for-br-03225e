@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  breakpoint-travel-boost-daemon:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: breakpoint_travel_boost_daemon
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
+      - PROGRAM_ID=TB26BoostBreakpointEscrow1111111111111111111
+      - DISCORD_WEBHOOK_URL=https://api.example.com/webhooks/alerts/placeholder
+      - RESEND_API_KEY=re_SampleKey1234567890
+      - NOTIFICATION_EMAIL=grants@solana.org
+      - PORT=8080
+    ports:
+      - "8080:8080"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"

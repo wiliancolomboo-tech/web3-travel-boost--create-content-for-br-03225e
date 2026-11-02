@@ -1,0 +1,8 @@
+[Draft/Submitted] 
+       │
+       ▼ (Oracle Verified >= Quality Score Threshold)
+[Approved / Stage 1 Disbursed] (USDC flight & hotel deposit released)
+       │
+       ├────────────────────────────────────────┐
+       ▼ (Breakpoint 2026 Check-in Validated)  ▼ (Expired / Inactivity)
+[Fully Completed & Settled]               [Refunded to Sponsor Pool]

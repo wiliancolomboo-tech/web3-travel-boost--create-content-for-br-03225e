@@ -1,0 +1,9 @@
+{
+  "status": "healthy",
+  "programId": "TrvL8jY8vXN6k9T4Xy5M2z7H4mB3p1Q9V6a8K2w4R5u",
+  "connectedRpc": "https://api.mainnet-beta.solana.com",
+  "processedEvents": 142,
+  "lastDisbursementSlot": 298412849,
+  "resendApiStatus": "operational",
+  "uptimeSeconds": 86400
+}

@@ -1,0 +1,25 @@
+flowchart TD
+    subgraph Creators & Sponsors
+        SP[Sponsor / Solana Foundation] -->|1. Initialize & Fund Grant Escrow| SC[TravelBoost Anchor Program]
+        CR[Technical Content Creator] -->|2. Register Application & Lock Commitment| SC
+    end
+
+    subgraph Solana Runtime On-Chain State
+        SC -->|Create| PDA_GRANT[Grant Account PDA: seeds=['grant', sponsor, creator]]
+        SC -->|Create| PDA_VAULT[Vault Escrow PDA: seeds=['vault', grant]]
+        SC -->|Verify Milestone Proofs| M_EVAL{Milestone Validator Engine}
+    end
+
+    subgraph Content Publication & Oracle Verification
+        CR -->|3. Publish Technical Content: Github / Blog / Workshop| WEB[Canonical Web / IPFS]
+        CLI[TravelBoost Verification Oracle Agent] -->|4. Scrape & Validate SHA256 Hash + Reach Metrics| WEB
+        CLI -->|5. Submit Signed Attestation| SC
+    end
+
+    subgraph Execution & Enterprise Integrations
+        M_EVAL -->|6. Release Travel Funds| CR_WALLET[Creator Wallet]
+        M_EVAL -->|7. Emit GrantCompleted Event| WS[Solana Geyser / WebSocket RPC]
+        WS -->|8. Stream Event Logs| SRV[TravelBoost Event Listener Worker]
+        SRV -->|9. Transactional Email Receipt| RESEND[Resend API: Creator & Sponsor Confirmation]
+        SRV -->|10. Real-Time Announcement| DISCORD[Discord / Slack Enterprise Webhook]
+    end

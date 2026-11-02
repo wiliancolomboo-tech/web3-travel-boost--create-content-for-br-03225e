@@ -1,19 +1,18 @@
-# 1. Build Solana Program
+# 1. Install Anchor CLI and Solana Tool Suite
+sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
+cargo install --git https://github.com/coral-xyz/anchor avm --locked --force
+avm install 0.30.1
+avm use 0.30.1
+
+# 2. Configure network (Devnet / Mainnet-Beta)
+solana config set --url https://api.devnet.solana.com
+
+# 3. Build smart contracts with deterministic verifiable binary
 anchor build
 
-# 2. Get Program ID
-solana address -k target/deploy/breakboost-keypair.json
-
-# 3. Synchronize keys across Anchor.toml and lib.rs
-anchor keys sync
-
-# 4. Deploy to Solana Devnet / Mainnet-Beta
-solana config set --url https://api.devnet.solana.com
+# 4. Deploy Program to Solana Devnet
+solana airdrop 2
 anchor deploy --provider.cluster devnet
 
-# 5. Initialize Campaign via CLI
-npm run cli -- init-campaign \
-  --name "Solana Breakpoint 2026 Travel Boost" \
-  --budget 50000 \
-  --max-stipend 2500 \
-  --mint EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+# 5. Run end-to-end QA validation suite
+anchor test

@@ -1,0 +1,12 @@
+GET /healthz
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "status": "healthy",
+  "service": "Breakpoint-Boost-Relayer",
+  "cluster": "mainnet-beta",
+  "oracle_pubkey": "Orac1eKey111111111111111111111111111111111",
+  "escrow_vault_balance_usdc": 50000.00,
+  "processed_applications_count": 42
+}

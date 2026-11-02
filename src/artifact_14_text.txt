@@ -1,0 +1,8 @@
+3/4 🌐 Fully automated end-to-end:
+• Discord & Slack bots broadcast every approved grant in real time
+• Instant flight & hotel travel vouchers delivered via @resend
+• Tested & audited on Solana devnet, ready for mainnet-beta!
+
+Let’s send the best builders to Breakpoint 2026. 🚢
+GitHub: https://github.com/solana-bounties/breakboost-breakpoint-2026
+#Solana #Breakpoint2026 #OnlyPossibleOnSolana

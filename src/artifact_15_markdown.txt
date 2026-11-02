@@ -1,0 +1,8 @@
+Zero manual spreadsheets. Zero double-claims. 100% on-chain transparency for the ecosystem.
+
+Ready for production deployment for Solana Breakpoint 2026. 
+
+Check out the full open-source repo, test matrix, and Docker deploy stack:
+👉 github.com/solana-developers/bp-boost
+
+Let’s boost builder attendance at #Breakpoint2026! 🚀🟣

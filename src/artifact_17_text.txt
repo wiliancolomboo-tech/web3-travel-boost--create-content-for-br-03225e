@@ -1,0 +1,7 @@
+How TravelBoost works under the hood on @solana:
+
+1️⃣ 40% Travel Kickoff: Verifies preview content & flight proof
+2️⃣ 30% Breakpoint Presence: NFC badge signed check-in on-site
+3️⃣ 30% Post-Event Deep-Dive: Releases upon shipping recaps/code
+
+Zero manual slop. Non-custodial Anchor vault. Instant USDC payouts.

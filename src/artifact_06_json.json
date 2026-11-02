@@ -1,0 +1,25 @@
+{
+  "name": "breakpoint-boost-daemon",
+  "version": "1.0.0",
+  "description": "Enterprise Verification Oracle & Travel Grant Dispatcher for Breakpoint 2026",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "eslint src/ --ext .ts"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.30.1",
+    "@solana/spl-token": "^0.4.8",
+    "@solana/web3.js": "^1.95.2",
+    "axios": "^1.7.2",
+    "dotenv": "^16.4.5",
+    "pino": "^9.2.0",
+    "pino-pretty": "^11.2.1",
+    "resend": "^3.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.9",
+    "typescript": "^5.5.2"
+  }
+}
