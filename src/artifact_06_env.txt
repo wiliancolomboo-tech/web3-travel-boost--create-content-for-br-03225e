@@ -6,7 +6,7 @@ PROGRAM_ID=VoyAgEqpD1vD9z44q7R2KqB6pDqM8R1kYQG2pZzGZ9B
 ORACLE_SECRET_KEY=[1,2,3...64_bytes_array]
 
 # Enterprise Integrations
-RESEND_API_KEY=re_live_xxxxxxxxxxxxxxxxxxxxxxxx
+RESEND_API_KEY="mock_development_token_00000000000000"
 SLACK_WEBHOOK_URL=https://api.example.com/webhooks/alerts/placeholder
 
 # Healthcheck Port

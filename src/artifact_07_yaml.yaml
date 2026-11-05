@@ -12,7 +12,7 @@ services:
       - SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
       - PROGRAM_ID=TB26BoostBreakpointEscrow1111111111111111111
       - DISCORD_WEBHOOK_URL=https://api.example.com/webhooks/alerts/placeholder
-      - RESEND_API_KEY=re_SampleKey1234567890
+      - RESEND_API_KEY="mock_development_token_00000000000000"
       - NOTIFICATION_EMAIL=grants@solana.org
       - PORT=8080
     ports:

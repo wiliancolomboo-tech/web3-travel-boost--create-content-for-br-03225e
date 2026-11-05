@@ -191,7 +191,7 @@ if (require.main === module) {
     process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com",
     Keypair.generate().secretKey,
     process.env.DISCORD_WEBHOOK_URL || "https://api.example.com/webhooks/alerts/placeholder",
-    process.env.RESEND_API_KEY || "re_test_mock_key_12345",
+    process.env.RESEND_API_KEY || "re_test_000000000000000000000000",
     Keypair.generate().publicKey.toBase58()
   );
 

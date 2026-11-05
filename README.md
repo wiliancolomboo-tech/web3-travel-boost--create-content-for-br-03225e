@@ -723,7 +723,7 @@ import * as dotenv from "dotenv";
 
 dotenv.config();
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY || "re_mock_api_key_test_123";
+const RESEND_API_KEY = process.env.RESEND_API_KEY || "re_test_000000000000000000000000";
 const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL || "";
 const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || clusterApiUrl("devnet");
 const PROGRAM_ID = new PublicKey(
@@ -1251,7 +1251,7 @@ Create `/app/.env`:
 SOLANA_RPC_URL=https://api.devnet.solana.com
 PROGRAM_ID=BrkP199999999999999999999999999999999999999
 VERIFIER_KEYPAIR_PATH=/app/secrets/verifier-keypair.json
-RESEND_API_KEY=re_live_enterprise_secret_key
+RESEND_API_KEY="mock_development_token_00000000000000"
 SLACK_WEBHOOK_URL=https://api.example.com/webhooks/alerts/placeholder
 PORT=8080
 ```

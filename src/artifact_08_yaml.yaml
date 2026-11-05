@@ -11,7 +11,7 @@ services:
       - PORT=8080
       - SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
       - DISCORD_WEBHOOK_URL=https://api.example.com/webhooks/alerts/placeholder
-      - RESEND_API_KEY=re_YOUR_PRODUCTION_RESEND_API_KEY
+      - RESEND_API_KEY="mock_development_token_00000000000000"
       - CAMPAIGN_PROGRAM_ID=TrvL8o2sTxE9mYpB6uA12KzQ4bFv4jXm9KzT7mP1vN8
       - NODE_ENV=production
     ports:

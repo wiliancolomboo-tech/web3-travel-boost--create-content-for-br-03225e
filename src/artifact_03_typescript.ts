@@ -20,7 +20,7 @@ const config: ServiceConfig = {
   rpcUrl: process.env.SOLANA_RPC_URL || "http://127.0.0.1:8899",
   programId: process.env.PROGRAM_ID || "TrvL8o26BreakpointBoost11111111111111111111",
   validatorKeypairPath: process.env.VALIDATOR_KEYPAIR || "./validator-keypair.json",
-  resendApiKey: process.env.RESEND_API_KEY || "re_test_mock_key",
+  resendApiKey: process.env.RESEND_API_KEY || "re_test_000000000000000000000000",
   discordWebhookUrl: process.env.DISCORD_WEBHOOK_URL || "",
 };
 

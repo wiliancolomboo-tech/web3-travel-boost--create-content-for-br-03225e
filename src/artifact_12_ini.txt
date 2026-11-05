@@ -4,7 +4,7 @@ PROGRAM_ID=TBst202611111111111111111111111111111111111
 ORACLE_KEYPAIR_PATH=./keys/oracle.json
 
 # Enterprise Notification APIs
-RESEND_API_KEY=re_1234567890abcdef
+RESEND_API_KEY="mock_development_token_00000000000000"
 SLACK_WEBHOOK_URL=https://api.example.com/webhooks/alerts/placeholder
 
 # Operational Settings
